@@ -224,7 +224,7 @@ fun WifiTrackerContent() {
         }
         
         if (!isWifiEnabled || !isLocationEnabled) {
-            Text("請檢查 WiFi 與 定位開關", color = Color.Red, fontSize = 12.sp)
+            Text("請開啓WiFi與GPS", color = Color.Red, fontSize = 14.sp)
         }
 
         // 雷達圖

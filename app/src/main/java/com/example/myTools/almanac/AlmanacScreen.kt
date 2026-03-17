@@ -6,16 +6,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,15 +23,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Eco
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,7 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myTools.almanac.SolarTermData
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.example.myTools.auspicious.AuspiciousQueryScreen
+import com.example.myTools.settings.AppSettingsDialog
+import com.example.myTools.ui.CommonTopBar
 import com.nlf.calendar.Lunar
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -54,57 +62,52 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.ceil
 
-
-// 黃曆頁面 (Almanac Screen) - 使用 lunar 庫
-
 @Composable
 fun AlmanacScreen(modifier: Modifier = Modifier) {
-    // 1. 獲取時間與農曆物件
     val today = remember { Date() }
     val lunar = remember { Lunar.fromDate(today) }
 
-    // 2. 節氣計算邏輯
+    // 節氣計算
     val currentJieQiObj = lunar.getPrevJieQi(true)
     val currentTermName = currentJieQiObj.name
-
     val nextJieQiObj = lunar.getNextJieQi(false)
     val nextTermName = nextJieQiObj.name
 
-    // 計算距離下個節氣還有幾天
     val daysLeft = remember {
-        val todayCal = Calendar.getInstance()
-        todayCal.set(Calendar.HOUR_OF_DAY, 0)
-        todayCal.set(Calendar.MINUTE, 0)
-        todayCal.set(Calendar.SECOND, 0)
-        todayCal.set(Calendar.MILLISECOND, 0)
-
-        val nextTermCal = Calendar.getInstance()
-        val nextSolar = nextJieQiObj.solar
-        nextTermCal.set(nextSolar.year, nextSolar.month - 1, nextSolar.day, 0, 0, 0)
-        nextTermCal.set(Calendar.MILLISECOND, 0)
-
-        val diffMillis = nextTermCal.timeInMillis - todayCal.timeInMillis
-        ceil(diffMillis / (1000.0 * 3600 * 24)).toInt()
+        val todayCal = Calendar.getInstance().apply {
+            time = today; set(Calendar.HOUR_OF_DAY, 0); set(
+            Calendar.MINUTE,
+            0
+        ); set(
+            Calendar.SECOND,
+            0
+        ); set(Calendar.MILLISECOND, 0)
+        }
+        val nextTermCal = Calendar.getInstance().apply {
+            val s = nextJieQiObj.solar
+            set(s.year, s.month - 1, s.day, 0, 0, 0); set(Calendar.MILLISECOND, 0)
+        }
+        ceil((nextTermCal.timeInMillis - todayCal.timeInMillis) / (1000.0 * 3600 * 24)).toInt()
     }
 
-    // 計算當前節氣已經過了幾天
     val daysSince = remember {
-        val todayCal = Calendar.getInstance()
-        todayCal.set(Calendar.HOUR_OF_DAY, 0)
-        todayCal.set(Calendar.MINUTE, 0)
-        todayCal.set(Calendar.SECOND, 0)
-        todayCal.set(Calendar.MILLISECOND, 0)
-
-        val currentTermCal = Calendar.getInstance()
-        val currSolar = currentJieQiObj.solar
-        currentTermCal.set(currSolar.year, currSolar.month - 1, currSolar.day, 0, 0, 0)
-        currentTermCal.set(Calendar.MILLISECOND, 0)
-
-        val diffMillis = todayCal.timeInMillis - currentTermCal.timeInMillis
-        ceil(diffMillis / (1000.0 * 3600 * 24)).toInt() + 1
+        val todayCal = Calendar.getInstance().apply {
+            time = today; set(Calendar.HOUR_OF_DAY, 0); set(
+            Calendar.MINUTE,
+            0
+        ); set(
+            Calendar.SECOND,
+            0
+        ); set(Calendar.MILLISECOND, 0)
+        }
+        val currTermCal = Calendar.getInstance().apply {
+            val s = currentJieQiObj.solar
+            set(s.year, s.month - 1, s.day, 0, 0, 0); set(Calendar.MILLISECOND, 0)
+        }
+        ceil((todayCal.timeInMillis - currTermCal.timeInMillis) / (1000.0 * 3600 * 24)).toInt() + 1
     }
 
-    // 3. 十二生肖年表邏輯 - 前後6年 (共13年)
+    // 生肖年表
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     val zodiacList = remember(currentYear) {
         (-6..6).map { i ->
@@ -114,156 +117,318 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    // 對話框開關
+    // 狀態控制
     var showTermDialog by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var showAuspiciousFullScreen by remember { mutableStateOf(false) }
 
-    // 4. 主畫面佈局
-    Column(
-        modifier = modifier
-            .background(Color(0xFFFDF5E6))
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .verticalScroll(rememberScrollState())
-            .padding(18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // --- 公曆日期 ---
-        Text(
-            text = SimpleDateFormat("yyyy年MM月dd日 EEEE", Locale.TRADITIONAL_CHINESE).format(today),
-            fontSize = 24.sp,
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // --- 農曆大卡片 ---
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFB71C1C)),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+    Scaffold(
+        topBar = {
+            CommonTopBar(
+                title = "黃曆",
+                onSettingsClick = { showSettingsDialog = true },
+                containerColor = Color(0xFFFDF5E6)
+            )
+        },
+        containerColor = Color(0xFFFDF5E6)
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // --- 農曆大卡片 ---
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFB71C1C)),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(10.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = lunar.dayInChinese, fontSize = 60.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                Text(text = "${lunar.monthInChinese}月 ${lunar.yearInGanZhi}年", fontSize = 24.sp, color = Color.White.copy(alpha = 0.9f))
-                Text(text = "【屬${lunar.yearShengXiao}】", fontSize = 18.sp, color = Color(0xFFFFD700), modifier = Modifier.padding(top = 8.dp))
-            }
-        }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "${lunar.monthInChinese}月 ${lunar.yearInGanZhi}年",
+                        fontSize = 26.sp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
 
-        Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = lunar.dayInChinese,
+                        fontSize = 46.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
 
-        // --- 宜忌卡片 ---
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            YiJiCard(title = "宜", items = lunar.dayYi, color = Color(0xFF2E7D32))
-            YiJiCard(title = "忌", items = lunar.dayJi, color = Color(0xFFC62828))
-        }
+                    Text(
+                        text = "【屬${lunar.yearShengXiao}】",
+                        fontSize = 20.sp,
+                        color = Color.Yellow,
+                        textAlign = TextAlign.Center
+                    )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // --- 節氣詳情卡片 ---
-        Surface(
-            color = Color.White, shape = RoundedCornerShape(12.dp), shadowElevation = 6.dp,
-            modifier = Modifier.fillMaxWidth().clickable { showTermDialog = true }
-        ) {
-            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(44.dp).background(Color(0xFFE0F2F1), RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Eco, contentDescription = null, tint = Color(0xFF00695C))
+                    // --- 新曆日期與星期 ---
+                    Text(
+                        text = SimpleDateFormat(
+                            "yyyy年MM月dd日 EEEE",
+                            Locale.TRADITIONAL_CHINESE
+                        ).format(today),
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = currentTermName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(color = Color(0xFF5D4037), shape = RoundedCornerShape(6.dp)) {
-                            Text(text = "第${daysSince}天", fontSize = 12.sp, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // --- 宜忌卡片 ---
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                YiJiRow(title = "宜", items = lunar.dayYi, color = Color(0xFF2E7D32))
+                YiJiRow(title = "忌", items = lunar.dayJi, color = Color(0xFFC62828))
+            }
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            // --- 節氣詳情 ---
+            Surface(
+                color = Color.White, shape = RoundedCornerShape(12.dp), shadowElevation = 4.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showTermDialog = true }
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(Color(0xFFE0F2F1), RoundedCornerShape(50)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.Eco,
+                            contentDescription = null,
+                            tint = Color(0xFF00695C),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = currentTermName,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF5D4037)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Surface(color = Color(0xFF5D4037), shape = RoundedCornerShape(4.dp)) {
+                                Text(
+                                    text = "第${daysSince}天",
+                                    fontSize = 13.sp,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
                         }
                     }
-                    Text(text = SolarTermData.getDescription(currentTermName).replace("\n", " ").take(30) + "...", fontSize = 14.sp, color = Color.Gray, maxLines = 1)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "距離 $nextTermName 還有 $daysLeft 天", fontSize = 15.sp, color = Color(0xFF795548))
-                }
-                Icon(Icons.Default.Info, contentDescription = "詳情", tint = Color.LightGray, modifier = Modifier.size(20.dp))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- 十二生肖年表 (前後6年 & 自動居中) ---
-        Text(
-            text = "十二生肖年表 (最近前後6年)",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF5D4037),
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val screenWidth = maxWidth
-            val itemWidth = 80.dp
-            val density = LocalDensity.current
-            val zodiacListState = rememberLazyListState()
-
-            LaunchedEffect(key1 = currentYear) {
-                val centerOffset = with(density) { ((screenWidth - itemWidth) / 2).toPx().toInt() }
-                // index 6 是中間 (對應於 -6..6 中的 0，即今年)
-                zodiacListState.scrollToItem(index = 6, scrollOffset = -centerOffset)
-            }
-
-            LazyRow(
-                state = zodiacListState,
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(zodiacList) { index, (year, shengXiao) ->
-                    ZodiacCard(year = year, shengXiao = shengXiao, isCurrent = year == currentYear)
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-        // 5. 節氣詳情對話框
-        if (showTermDialog) {
-            AlertDialog(
-                onDismissRequest = { showTermDialog = false },
-                icon = { Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFFB71C1C)) },
-                title = { Text(text = "節氣詳解", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB71C1C)) },
-                text = {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        Text(text = "當前節氣：$currentTermName", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = SolarTermData.getDescription(currentTermName), fontSize = 18.sp, lineHeight = 22.sp, color = Color.Black.copy(alpha = 0.8f))
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text(text = "即將到來：$nextTermName", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = SolarTermData.getDescription(nextTermName), fontSize = 18.sp, lineHeight = 22.sp, color = Color.Black.copy(alpha = 0.8f))
+            // --- 生肖年表 ---
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val screenWidth = maxWidth;
+                val itemWidth = 75.dp;
+                val density = LocalDensity.current;
+                val zodiacListState = rememberLazyListState()
+                LaunchedEffect(key1 = currentYear) {
+                    zodiacListState.scrollToItem(
+                        index = 6,
+                        scrollOffset = -with(density) {
+                            ((screenWidth - itemWidth) / 2).toPx().toInt()
+                        })
+                }
+                LazyRow(
+                    state = zodiacListState,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    itemsIndexed(zodiacList) { _, (year, shengXiao) ->
+                        ZodiacCard(
+                            year = year,
+                            shengXiao = shengXiao,
+                            isCurrent = year == currentYear
+                        )
                     }
-                },
-                confirmButton = { TextButton(onClick = { showTermDialog = false }) { Text("確定", color = Color(0xFFB71C1C), fontWeight = FontWeight.Bold) } },
-                containerColor = Color(0xFFFFF8E1)
-            )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            // --- 吉日按鈕 ---
+            Button(
+                onClick = { showAuspiciousFullScreen = true },
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                shape = RoundedCornerShape(27.dp),
+                elevation = ButtonDefaults.buttonElevation(6.dp)
+            ) {
+                Icon(Icons.Default.EventNote, contentDescription = null)
+                Spacer(modifier = Modifier.width(10.dp))
+                Text("查看吉日 (Auspicious Days)", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            }
+
+
+            // --- 對話框內容 ---
+            if (showTermDialog) {
+                Dialog(
+                    onDismissRequest = { showTermDialog = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(0.92f)
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = "節氣詳解",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = currentTermName,
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFB71C1C)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = SolarTermData.getDescription(currentTermName),
+                                fontSize = 20.sp,
+                                lineHeight = 32.sp,
+                                color = Color(0xFF5D4037)
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { showTermDialog = false },
+                                modifier = Modifier.align(Alignment.End),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("確定", color = Color.White, fontSize = 18.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (showSettingsDialog) AppSettingsDialog(onDismiss = { showSettingsDialog = false })
+
+            // --- 全螢幕吉日查詢 ---
+            if (showAuspiciousFullScreen) {
+                Dialog(
+                    onDismissRequest = { showAuspiciousFullScreen = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = false) // 關鍵：允許全螢幕
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color(0xFFFDFDF6)
+                    ) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            // 頂部關閉按鈕列
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                IconButton(onClick = { showAuspiciousFullScreen = false }) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "關閉",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                            // 嵌入原本的吉日查詢頁面
+                            AuspiciousQueryScreen()
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun YiJiCard(title: String, items: List<String>, color: Color) {
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.width(160.dp)) {
-        Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(modifier = Modifier.size(40.dp).background(color, RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
-                Text(text = title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            val displayItems = items.take(6)
+fun YiJiRow(title: String, items: List<String>, color: Color) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .background(color, RoundedCornerShape(50)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        FlowRow(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            maxItemsInEachRow = 4
+        ) {
+            val displayItems = items.take(8)
             if (displayItems.isEmpty()) {
-                Text(text = "無", color = Color.Gray, fontSize = 18.sp)
+                Text(text = "無", color = Color.Gray, fontSize = 16.sp)
             } else {
                 displayItems.forEach { item ->
-                    Text(text = item, fontSize = 18.sp, color = Color.Black.copy(alpha = 0.8f), modifier = Modifier.padding(vertical = 2.dp), textAlign = TextAlign.Center)
+                    Text(
+                        text = item,
+                        fontSize = 20.sp,
+                        color = Color.DarkGray,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }
@@ -274,13 +439,27 @@ fun YiJiCard(title: String, items: List<String>, color: Color) {
 fun ZodiacCard(year: Int, shengXiao: String, isCurrent: Boolean) {
     Card(
         colors = CardDefaults.cardColors(containerColor = if (isCurrent) Color(0xFFB71C1C) else Color.White),
-        elevation = CardDefaults.cardElevation(4.dp),
-        modifier = Modifier.width(80.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        modifier = Modifier.width(75.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = year.toString(), fontSize = 14.sp, color = if (isCurrent) Color.White else Color.Gray, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = shengXiao, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (isCurrent) Color(0xFFFFD700) else Color.Black)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = year.toString(),
+                fontSize = 14.sp,
+                color = if (isCurrent) Color.White else Color.Gray
+            )
+            Text(
+                text = shengXiao,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isCurrent) Color(0xFFFFD700) else Color.Black
+            )
         }
     }
 }

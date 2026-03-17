@@ -9,11 +9,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- 新增：通知權限 (Android 13+) -->
+    <!-- 通知權限 (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- 新增：設置精確鬧鐘權限 (Android 12+) -->
+
+    <!-- 設置精確鬧鐘權限 (Android 12+) -->
+    <!-- 移除 USE_EXACT_ALARM 以確保權限是由用戶自主選擇開啟，而不是安裝後自動獲得 -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -32,11 +33,9 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- 新增：註冊廣播接收器 (負責彈出通知) -->
         <receiver android:name=".birthday.BirthdayReceiver" />
     </application>
 

@@ -1,0 +1,428 @@
+package com.example.myTools.bazi
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.example.myTools.settings.AppSettingsDialog
+import com.example.myTools.ui.CommonTopBar
+import com.nlf.calendar.EightChar
+import com.nlf.calendar.Lunar
+import com.nlf.calendar.Solar
+import java.util.Locale
+
+@Composable
+fun BaZiScreen() {
+    val context = LocalContext.current
+    var records by remember { mutableStateOf(BaZiManager.loadList(context)) }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var recordToEdit by remember { mutableStateOf<BaZiRecord?>(null) }
+    var selectedRecord by remember { mutableStateOf<BaZiRecord?>(null) }
+
+    Scaffold(
+        topBar = {
+            CommonTopBar(
+                title = "八字命盤",
+                onSettingsClick = { showSettingsDialog = true }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "添加紀錄")
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            if (records.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("暫無紀錄，請點擊右下角按鈕添加", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(records) { record ->
+                        BaZiRecordItem(
+                            record = record,
+                            onClick = { selectedRecord = record },
+                            onEdit = { recordToEdit = record },
+                            onDelete = {
+                                BaZiManager.deleteRecord(context, record.id)
+                                records = BaZiManager.loadList(context)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        AddBaZiDialog(
+            onDismiss = { showAddDialog = false },
+            onSave = {
+                BaZiManager.addOrUpdateRecord(context, it)
+                records = BaZiManager.loadList(context)
+                showAddDialog = false
+            }
+        )
+    }
+
+    if (showSettingsDialog) {
+        AppSettingsDialog(onDismiss = { showSettingsDialog = false })
+    }
+
+    if (recordToEdit != null) {
+        AddBaZiDialog(
+            initialRecord = recordToEdit,
+            onDismiss = { recordToEdit = null },
+            onSave = {
+                BaZiManager.addOrUpdateRecord(context, it)
+                records = BaZiManager.loadList(context)
+                recordToEdit = null
+            }
+        )
+    }
+
+    if (selectedRecord != null) {
+        BaZiDetailDialog(
+            record = selectedRecord!!,
+            onDismiss = { selectedRecord = null }
+        )
+    }
+}
+
+@Composable
+fun BaZiRecordItem(
+    record: BaZiRecord,
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = record.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                val typeStr = if (record.isLunar) "農曆" else "公曆"
+                Text(
+                    text = "$typeStr: ${record.year}-${record.month}-${record.day} ${
+                        String.format(
+                            Locale.getDefault(),
+                            "%02d:%02d",
+                            record.hour,
+                            record.minute
+                        )
+                    }",
+                    fontSize = 18.sp,
+                    color = Color.Gray
+                )
+            }
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, contentDescription = "編輯", tint = Color.Blue)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "刪除", tint = Color.Red)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BaZiDetailDialog(
+    record: BaZiRecord,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val lunar = if (record.isLunar) {
+        Lunar.fromYmdHms(record.year, record.month, record.day, record.hour, record.minute, 0)
+    } else {
+        Solar.fromYmdHms(record.year, record.month, record.day, record.hour, record.minute, 0).lunar
+    }
+
+    val solar = lunar.solar
+    val solarFullStr = "${solar.year}-${
+        String.format(
+            Locale.getDefault(),
+            "%02d-%02d %02d:%02d",
+            solar.month,
+            solar.day,
+            solar.hour,
+            solar.minute
+        )
+    }"
+    val baZi = lunar.eightChar
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("${record.name} 的八字命盤") },
+                        navigationIcon = {
+                            IconButton(onClick = onDismiss) {
+                                Icon(Icons.Default.Close, contentDescription = "關閉")
+                            }
+                        },
+                        actions = {
+                            // 複製按鈕放在顯眼位置
+                            TextButton(onClick = {
+                                val copyText = """
+                                    請為以下命主進行詳細的八字分析：
+                                    
+                                    姓名：${record.name}
+                                    出生公曆：${solar.toFullString()}
+                                    出生農曆：${lunar.toString()}
+                                    
+                                    八字四柱：
+                                    年柱：${baZi.year} (${baZi.yearShiShenGan}, 納音: ${baZi.yearNaYin})
+                                    月柱：${baZi.month} (${baZi.monthShiShenGan}, 納音: ${baZi.monthNaYin})
+                                    日柱：${baZi.day} (日主, 納音: ${baZi.dayNaYin})
+                                    時柱：${baZi.time} (${baZi.timeShiShenGan}, 納音: ${baZi.timeWuXing})
+                                    
+                                    五行分布：${baZi.yearWuXing}${baZi.monthWuXing}${baZi.dayWuXing}${baZi.timeWuXing}
+                                    
+                                    請從性格特徵、五行喜忌、事業財運及改善建議四個方面進行深度解析。
+                                """.trimIndent()
+                                val clipboard =
+                                    context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("BaZi Data", copyText)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(
+                                    context,
+                                    "命盤數據已複製，請粘貼到 AI 進行諮詢",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = null)
+                                Spacer(Modifier.width(4.dp))
+                                Text("複製數據諮詢 AI")
+                            }
+                        }
+                    )
+                }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // 基本信息卡片
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            InfoRow("公曆出生", solarFullStr)
+                            InfoRow("農曆出生", lunar.toString())
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // 八字核心展示
+                    Text(
+                        "八字四柱",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        BaZiColumn(
+                            "年柱",
+                            baZi.year,
+                            baZi.yearShiShenGan,
+                            baZi.yearWuXing,
+                            baZi.yearNaYin
+                        )
+                        BaZiColumn(
+                            "月柱",
+                            baZi.month,
+                            baZi.monthShiShenGan,
+                            baZi.monthWuXing,
+                            baZi.monthNaYin
+                        )
+                        BaZiColumn("日柱", baZi.day, "日主", baZi.dayWuXing, baZi.dayNaYin)
+                        BaZiColumn(
+                            "時柱",
+                            baZi.time,
+                            baZi.timeShiShenGan,
+                            baZi.timeWuXing,
+                            baZi.timeNaYin
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // 五行平衡
+                    Text(
+                        "五行平衡",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text(
+                        calculateWuXingBalance(baZi),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // 命理數據卡片
+                    Text(
+                        "命理詳情",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            InfoRow("胎元", baZi.taiYuan)
+                            InfoRow("命宮", baZi.mingGong)
+                            InfoRow("身宮", baZi.shenGong)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Text(
+                        "地支藏幹 (十神)",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CangGanItem("年支藏幹", baZi.yearHideGan)
+                        CangGanItem("月支藏幹", baZi.monthHideGan)
+                        CangGanItem("日支藏幹", baZi.dayHideGan)
+                        CangGanItem("時支藏幹", baZi.timeHideGan)
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CangGanItem(label: String, list: List<String>) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(text = "$label: ", fontWeight = FontWeight.Bold, modifier = Modifier.width(100.dp))
+        Text(text = list.joinToString("  "))
+    }
+}
+
+@Composable
+fun InfoRow(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(
+            text = "$label: ",
+            fontSize = 20.sp
+        )
+        Text(text = value, fontSize = 18.sp)
+    }
+}
+
+@Composable
+fun BaZiColumn(label: String, value: String, tenShi: String, wuXing: String, naYin: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(4.dp)) {
+        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(tenShi, fontSize = 16.sp, color = Color(0xFFB71C1C), fontWeight = FontWeight.Bold)
+        Text(value, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+        Text(wuXing, fontSize = 16.sp, color = Color(0xFF1B5E20))
+        Text(naYin, fontSize = 14.sp, color = Color.Gray)
+    }
+}
+
+fun calculateWuXingBalance(baZi: EightChar): String {
+    val all = baZi.yearWuXing + baZi.monthWuXing + baZi.dayWuXing + baZi.timeWuXing
+    val counts = mutableMapOf('金' to 0, '木' to 0, '水' to 0, '火' to 0, '土' to 0)
+    all.forEach { char ->
+        if (counts.containsKey(char)) {
+            counts[char] = counts[char]!! + 1
+        }
+    }
+    return counts.entries.joinToString("  ") { "${it.key}: ${it.value}" }
+}

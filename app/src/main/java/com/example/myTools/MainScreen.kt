@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material.icons.outlined.Wifi
@@ -38,7 +38,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.myTools.almanac.AlmanacScreen
-import com.example.myTools.auspicious.AuspiciousQueryScreen
+import com.example.myTools.bazi.BaZiScreen
 import com.example.myTools.birthday.LunarBirthdayScreen
 import com.example.myTools.caliper.CaliperScreen
 import com.example.myTools.luopan.LuopanScreen
@@ -46,182 +46,111 @@ import com.example.myTools.wifi.WifiTrackerScreen
 
 @Composable
 fun MainScreen() {
-    // 0=黃曆, 1=吉日, 2=生日, 3=羅盤, 4=尺規, 5=WiFi追蹤
+    // 0=黃曆, 1=八字, 2=生日, 3=羅盤, 4=尺規, 5=WiFi
     var selectedIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(0) }
-
-    // --- 判斷當前是否為深色模式頁面 (羅盤, 尺規, WiFi) ---
     val isDarkModePage = selectedIndex >= 3
 
-
-    // --- 狀態欄控制 ---
     val context = LocalContext.current
     val view = LocalView.current
     LaunchedEffect(selectedIndex) {
         val window = (context as? Activity)?.window ?: return@LaunchedEffect
         val insetsController = WindowCompat.getInsetsController(window, view)
-
         if (isDarkModePage) {
-            // 3(羅盤), 4(尺規), 5(WiFi)：隱藏狀態欄，全螢幕，文字白色
             insetsController.hide(WindowInsetsCompat.Type.systemBars())
-            insetsController.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             insetsController.isAppearanceLightStatusBars = false
         } else {
-            // 0, 1, 2：顯示狀態欄，文字黑色
             insetsController.show(WindowInsetsCompat.Type.systemBars())
             insetsController.isAppearanceLightStatusBars = true
         }
     }
 
-    // --- MD3 動態色彩邏輯 ---
     val targetBarColor = if (isDarkModePage) Color.Black else Color(0xFFFDFDF6)
-    val navBarColor by animateColorAsState(
-        targetValue = targetBarColor,
-        animationSpec = tween(500),
-        label = "BarColor"
-    )
-
+    val navBarColor by animateColorAsState(targetValue = targetBarColor, animationSpec = tween(500), label = "BarColor")
     val targetContentColor = if (isDarkModePage) Color.White else Color.Black
-    val navContentColor by animateColorAsState(
-        targetValue = targetContentColor,
-        animationSpec = tween(500),
-        label = "ContentColor"
-    )
+    val navContentColor by animateColorAsState(targetValue = targetContentColor, animationSpec = tween(500), label = "ContentColor")
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = navBarColor,
-                contentColor = navContentColor,
-                tonalElevation = 0.dp
-            ) {
+            NavigationBar(containerColor = navBarColor, contentColor = navContentColor, tonalElevation = 0.dp) {
                 // 0: 黃曆
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            if (selectedIndex == 0) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
-                            "黃曆"
-                        )
-                    },
+                    icon = { Icon(if (selectedIndex == 0) Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth, "黃曆") },
                     label = { Text("黃曆") },
                     selected = selectedIndex == 0,
                     onClick = { selectedIndex = 0 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFB71C1C),
-                        selectedTextColor = Color(0xFFB71C1C),
-                        indicatorColor = Color(0xFFFFCDD2),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color(0xFFB71C1C), selectedTextColor = Color(0xFFB71C1C),
+                        indicatorColor = Color(0xFFFFCDD2), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
 
-                // 1: 吉日
+                // 1: 八字 (原吉日)
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            if (selectedIndex == 1) Icons.Filled.EventAvailable else Icons.Outlined.EventAvailable,
-                            "吉日"
-                        )
-                    },
-                    label = { Text("吉日") },
+                    icon = { Icon(if (selectedIndex == 1) Icons.Filled.AutoFixHigh else Icons.Outlined.AutoFixHigh, "八字") },
+                    label = { Text("八字") },
                     selected = selectedIndex == 1,
                     onClick = { selectedIndex = 1 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF2E7D32),
-                        selectedTextColor = Color(0xFF2E7D32),
-                        indicatorColor = Color(0xFFC8E6C9),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color(0xFF2E7D32), selectedTextColor = Color(0xFF2E7D32),
+                        indicatorColor = Color(0xFFC8E6C9), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
 
                 // 2: 生日
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            if (selectedIndex == 2) Icons.Filled.Cake else Icons.Outlined.Cake,
-                            "生日"
-                        )
-                    },
+                    icon = { Icon(if (selectedIndex == 2) Icons.Filled.Cake else Icons.Outlined.Cake, "生日") },
                     label = { Text("生日") },
                     selected = selectedIndex == 2,
                     onClick = { selectedIndex = 2 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFE64A19),
-                        selectedTextColor = Color(0xFFE64A19),
-                        indicatorColor = Color(0xFFFFCCBC),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color(0xFFE64A19), selectedTextColor = Color(0xFFE64A19),
+                        indicatorColor = Color(0xFFFFCCBC), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
 
                 // 3: 羅盤
                 NavigationBarItem(
-                    icon = {
-                        Icon(Icons.Outlined.Explore, contentDescription = "羅盤")
-                    },
+                    icon = { Icon(Icons.Outlined.Explore, "羅盤") },
                     label = { Text("羅盤") },
                     selected = selectedIndex == 3,
                     onClick = { selectedIndex = 3 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFFD700),
-                        selectedTextColor = Color(0xFFFFD700),
-                        indicatorColor = Color(0xFF37474F),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color(0xFFFFD700), selectedTextColor = Color(0xFFFFD700),
+                        indicatorColor = Color(0xFF37474F), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
 
                 // 4: 尺規
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            if (selectedIndex == 4) Icons.Filled.Straighten else Icons.Outlined.Straighten,
-                            "尺規"
-                        )
-                    },
+                    icon = { Icon(if (selectedIndex == 4) Icons.Filled.Straighten else Icons.Outlined.Straighten, "尺規") },
                     label = { Text("尺規") },
                     selected = selectedIndex == 4,
                     onClick = { selectedIndex = 4 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = Color.White,
-                        indicatorColor = Color(0xFF2196F3),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color.White, selectedTextColor = Color.White,
+                        indicatorColor = Color(0xFF2196F3), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
 
-                // 5: WiFi 追蹤
+                // 5: WiFi
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            if (selectedIndex == 5) Icons.Filled.Wifi else Icons.Outlined.Wifi,
-                            "WiFi"
-                        )
-                    },
+                    icon = { Icon(if (selectedIndex == 5) Icons.Filled.Wifi else Icons.Outlined.Wifi, "WiFi") },
                     label = { Text("WiFi") },
                     selected = selectedIndex == 5,
                     onClick = { selectedIndex = 5 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF00B0FF),
-                        selectedTextColor = Color(0xFF00B0FF),
-                        indicatorColor = Color(0xFFE1F5FE),
-                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
-                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                        selectedIconColor = Color(0xFF00B0FF), selectedTextColor = Color(0xFF00B0FF),
+                        indicatorColor = Color(0xFFE1F5FE), unselectedIconColor = navContentColor.copy(alpha = 0.6f), unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
                 )
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding())
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())) {
             when (selectedIndex) {
                 0 -> AlmanacScreen(modifier = Modifier.fillMaxSize())
-                1 -> AuspiciousQueryScreen()
+                1 -> BaZiScreen()
                 2 -> LunarBirthdayScreen()
                 3 -> LuopanScreen()
                 4 -> CaliperScreen()

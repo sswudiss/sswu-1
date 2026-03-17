@@ -6,14 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.myTools"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.ruler"
         minSdk = 31
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -38,6 +36,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -60,13 +59,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // 1. 農曆算法庫 (非常強大，支持宜忌、八字等)
-    implementation("cn.6tail:lunar:1.3.11")
-
-    // 2. 擴展圖標庫 (為了使用更多 Material Icons)
+    // 1. 農曆算法庫
+    implementation("cn.6tail:lunar:1.7.7")
+    // 2. 擴展圖標庫
     implementation(libs.androidx.compose.material.icons.extended)
-
-    //需要 Gson 來把資料轉成文字存起來
+    // 3. Gson
     implementation("com.google.code.gson:gson:2.13.2")
-
 }
