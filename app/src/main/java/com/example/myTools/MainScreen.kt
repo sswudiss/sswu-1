@@ -11,11 +11,13 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Straighten
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -40,13 +42,14 @@ import com.example.myTools.auspicious.AuspiciousQueryScreen
 import com.example.myTools.birthday.LunarBirthdayScreen
 import com.example.myTools.caliper.CaliperScreen
 import com.example.myTools.luopan.LuopanScreen
+import com.example.myTools.wifi.WifiTrackerScreen
 
 @Composable
 fun MainScreen() {
-    // 0=黃曆, 1=吉日, 2=生日, 3=羅盤, 4=尺規
+    // 0=黃曆, 1=吉日, 2=生日, 3=羅盤, 4=尺規, 5=WiFi追蹤
     var selectedIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(0) }
 
-    // --- 判斷當前是否為深色模式頁面 (羅盤 或 尺規) ---
+    // --- 判斷當前是否為深色模式頁面 (羅盤, 尺規, WiFi) ---
     val isDarkModePage = selectedIndex >= 3
 
 
@@ -58,7 +61,7 @@ fun MainScreen() {
         val insetsController = WindowCompat.getInsetsController(window, view)
 
         if (isDarkModePage) {
-            // 3(羅盤) & 4(尺規)：隱藏狀態欄，全螢幕，文字白色(雖然隱藏了但設一下以防滑出)
+            // 3(羅盤), 4(尺規), 5(WiFi)：隱藏狀態欄，全螢幕，文字白色
             insetsController.hide(WindowInsetsCompat.Type.systemBars())
             insetsController.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -71,7 +74,6 @@ fun MainScreen() {
     }
 
     // --- MD3 動態色彩邏輯 ---
-    // 深色頁面用黑色導航欄，淺色頁面用米白導航欄
     val targetBarColor = if (isDarkModePage) Color.Black else Color(0xFFFDFDF6)
     val navBarColor by animateColorAsState(
         targetValue = targetBarColor,
@@ -79,7 +81,6 @@ fun MainScreen() {
         label = "BarColor"
     )
 
-    // 深色頁面字變白，淺色頁面字變黑
     val targetContentColor = if (isDarkModePage) Color.White else Color.Black
     val navContentColor by animateColorAsState(
         targetValue = targetContentColor,
@@ -114,7 +115,7 @@ fun MainScreen() {
                     )
                 )
 
-                // 1: 吉日 (新)
+                // 1: 吉日
                 NavigationBarItem(
                     icon = {
                         Icon(
@@ -126,9 +127,9 @@ fun MainScreen() {
                     selected = selectedIndex == 1,
                     onClick = { selectedIndex = 1 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF2E7D32), // 綠色代表吉利
+                        selectedIconColor = Color(0xFF2E7D32),
                         selectedTextColor = Color(0xFF2E7D32),
-                        indicatorColor = Color(0xFFC8E6C9),    // 淺綠
+                        indicatorColor = Color(0xFFC8E6C9),
                         unselectedIconColor = navContentColor.copy(alpha = 0.6f),
                         unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
@@ -154,20 +155,18 @@ fun MainScreen() {
                     )
                 )
 
-                //3:羅盤
+                // 3: 羅盤
                 NavigationBarItem(
-                    // 改圖標
                     icon = {
                         Icon(Icons.Outlined.Explore, contentDescription = "羅盤")
-                    }, // 需要 import Icons.Default.Explore
+                    },
                     label = { Text("羅盤") },
                     selected = selectedIndex == 3,
                     onClick = { selectedIndex = 3 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFFD700), // 金色
+                        selectedIconColor = Color(0xFFFFD700),
                         selectedTextColor = Color(0xFFFFD700),
-                        indicatorColor = Color(0xFF37474F),    // 深灰背景
-                        // 未選中時：跟隨 navContentColor (因為是深色頁面，所以是白色)，但調淡一點
+                        indicatorColor = Color(0xFF37474F),
                         unselectedIconColor = navContentColor.copy(alpha = 0.6f),
                         unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
@@ -177,7 +176,7 @@ fun MainScreen() {
                 NavigationBarItem(
                     icon = {
                         Icon(
-                            if (selectedIndex == 3) Icons.Filled.Straighten else Icons.Outlined.Straighten,
+                            if (selectedIndex == 4) Icons.Filled.Straighten else Icons.Outlined.Straighten,
                             "尺規"
                         )
                     },
@@ -188,6 +187,26 @@ fun MainScreen() {
                         selectedIconColor = Color.White,
                         selectedTextColor = Color.White,
                         indicatorColor = Color(0xFF2196F3),
+                        unselectedIconColor = navContentColor.copy(alpha = 0.6f),
+                        unselectedTextColor = navContentColor.copy(alpha = 0.6f)
+                    )
+                )
+
+                // 5: WiFi 追蹤
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            if (selectedIndex == 5) Icons.Filled.Wifi else Icons.Outlined.Wifi,
+                            "WiFi"
+                        )
+                    },
+                    label = { Text("WiFi") },
+                    selected = selectedIndex == 5,
+                    onClick = { selectedIndex = 5 },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF00B0FF),
+                        selectedTextColor = Color(0xFF00B0FF),
+                        indicatorColor = Color(0xFFE1F5FE),
                         unselectedIconColor = navContentColor.copy(alpha = 0.6f),
                         unselectedTextColor = navContentColor.copy(alpha = 0.6f)
                     )
@@ -206,6 +225,7 @@ fun MainScreen() {
                 2 -> LunarBirthdayScreen()
                 3 -> LuopanScreen()
                 4 -> CaliperScreen()
+                5 -> WifiTrackerScreen()
             }
         }
     }
