@@ -20,10 +20,14 @@ fun getLunarMonthName(month: Int): String {
 fun getLunarDayName(day: Int): String {
     val chineseTen = arrayOf("初", "十", "廿", "三")
     val chineseNum = arrayOf("一", "二", "三", "四", "五", "六", "七", "八", "九", "十")
-    return when {
-        day == 10 -> "初十"
-        day == 20 -> "二十"
-        day == 30 -> "三十"
+
+    // Kotlin 的代碼優化建議。
+    // 當 when 表達式中的所有條件都是對同一個變量進行相等性判斷時，
+    // 建議將該變量作為 when 的參數（即 subject），這樣代碼會更簡潔、可讀性更好。
+    return when (day) {
+        10 -> "初十"
+        20 -> "二十"
+        30 -> "三十"
         else -> {
             val ten = day / 10
             val unit = day % 10

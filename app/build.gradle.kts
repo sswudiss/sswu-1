@@ -1,17 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    // alias(libs.plugins.kotlin.android) // AGP 9.0+ 已內建支持，無需此插件
     alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace = "com.example.myTools"
-    compileSdk = 35
+    compileSdk = 36 // 建議保持與 targetSdk 一致或更高
 
     defaultConfig {
         applicationId = "com.example.ruler"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -27,13 +27,16 @@ android {
             )
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+
+    // 在 AGP 9.0+ 中，若使用了內置 Kotlin 支持，
+    // 通常不再需要顯式定義 kotlinOptions 或 compilerOptions，
+    // 它會繼承 compileOptions 的設置。
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -43,6 +46,7 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

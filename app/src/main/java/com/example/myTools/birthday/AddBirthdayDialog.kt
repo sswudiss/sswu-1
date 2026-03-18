@@ -63,7 +63,10 @@ fun AddBirthdayDialog(
                             readOnly = true,
                             label = { Text("月份") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = monthExpanded) },
-                            modifier = Modifier.menuAnchor()
+                            modifier = Modifier.menuAnchor(
+                                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            )
                         )
                         ExposedDropdownMenu(
                             expanded = monthExpanded,
@@ -90,7 +93,10 @@ fun AddBirthdayDialog(
                             readOnly = true,
                             label = { Text("日期") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayExpanded) },
-                            modifier = Modifier.menuAnchor()
+                            modifier = Modifier.menuAnchor(
+                                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true
+                            )
                         )
                         ExposedDropdownMenu(
                             expanded = dayExpanded,

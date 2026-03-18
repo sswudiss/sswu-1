@@ -1,7 +1,6 @@
 package com.example.myTools.birthday
 
 
-import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -48,7 +47,7 @@ class BirthdayReceiver : BroadcastReceiver() {
         // 3. 構建通知
         val notification = NotificationCompat.Builder(context, channelId)
             // 確保這裡有一個有效的 icon，否則通知會崩潰
-            .setSmallIcon(R.drawable.ic_menu_my_calendar) // 這裡暫時用系統圖標，你可以換成 R.drawable.ic_cake
+            .setSmallIcon(android.R.drawable.ic_menu_my_calendar) // 這裡暫時用系統圖標，你可以換成 R.drawable.ic_cake
             .setContentTitle("🎂 $title 生日提醒")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

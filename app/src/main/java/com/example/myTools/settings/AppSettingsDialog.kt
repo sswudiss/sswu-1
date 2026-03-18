@@ -13,6 +13,8 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
@@ -43,24 +46,24 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,9 +71,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.core.net.toUri
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.myTools.R
 
 /**
@@ -80,7 +84,7 @@ import com.example.myTools.R
 fun AppSettingsDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var permissionUpdateTrigger by remember { mutableStateOf(0) }
+    var permissionUpdateTrigger by remember { mutableIntStateOf(0) }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -117,15 +121,6 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    "系統設置",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF5D4037)
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // 分組 1：權限管理
                 SettingsGroup(title = "功能權限", icon = Icons.Default.Security) {
                     PermissionRow(
@@ -177,7 +172,10 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                         IconButton(onClick = { /* TODO */ }) {
                             Icon(Icons.Default.PlayCircle, "Youtube", tint = Color.Red)
                         }
-                        IconButton(onClick = { /* TODO */ }) {
+                        IconButton(onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, "https://m.bilibili.com/space/297639121".toUri())
+                            context.startActivity(intent)
+                        }) {
                             Icon(Icons.Default.Subscriptions, "Bilibili", tint = Color(0xFFFB7299))
                         }
                     }
@@ -194,8 +192,8 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
 
                 // 分組 4：作者作品
                 SettingsGroup(title = "更多作品", icon = Icons.Default.Code) {
-                    WorkLinkItem(title = "作者的主頁", url = "https://github.com/sswudiss")
-                    WorkLinkItem(title = "其他工具應用", url = "https://github.com/sswudiss/sswu-1.git")
+                    WorkLinkItem(title = "分享App", url = "https://github.com/AppPlayForge/sswu-1.git")
+                    WorkLinkItem(title = "其它應用", url = "https://github.com/AppPlayForge")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -205,9 +203,9 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("版本號: v1.0.0", fontSize = 12.sp, color = Color.Gray)
+                    Text("版本號: v1.0.1-beta", fontSize = 14.sp, color = Color.Gray)
                     TextButton(onClick = onDismiss) {
-                        Text("返回", fontWeight = FontWeight.Bold, color = Color(0xFF8BC34A))
+                        Text("返回",  fontSize = 18.sp,fontWeight = FontWeight.Bold, color = Color(0xFF8BC34A))
                     }
                 }
             }
@@ -242,7 +240,7 @@ fun WorkLinkItem(title: String, url: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 context.startActivity(intent)
             }
             .padding(vertical = 10.dp),
@@ -257,20 +255,42 @@ fun WorkLinkItem(title: String, url: String) {
 
 @Composable
 fun SupportSection(context: Context) {
+    var wechatExpanded by remember { mutableStateOf(false) }
+    val rotationState by animateFloatAsState(targetValue = if (wechatExpanded) 180f else 0f)
+
     Column(modifier = Modifier.fillMaxWidth()) {
-        // 微信部分
-        Text("微信掃碼支持：", fontSize = 14.sp, color = Color(0xFF4CAF50))
-        Spacer(modifier = Modifier.height(8.dp))
-        Image(
-            painter = painterResource(id = R.drawable.wechat_pay_qr), // 確保圖片已放入 res/drawable
-            contentDescription = "微信收款碼",
+        // 微信部分 - 標題行，點擊切換狀態
+        Row(
             modifier = Modifier
-                .size(160.dp) // 設置二維碼顯示大小
-                .align(Alignment.CenterHorizontally)
-                .clip(RoundedCornerShape(8.dp)), // 圓角，看起來更精緻
-            contentScale = ContentScale.Fit
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+                .fillMaxWidth()
+                .clickable { wechatExpanded = !wechatExpanded }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("微信掃碼支持", fontSize = 14.sp, color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint = Color(0xFF4CAF50),
+                modifier = Modifier.rotate(rotationState)
+            )
+        }
+
+        AnimatedVisibility(visible = wechatExpanded) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.wechat_pay_qr),
+                    contentDescription = "微信收款碼",
+                    modifier = Modifier
+                        .size(160.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
         
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
         
@@ -303,26 +323,21 @@ private fun PermissionRow(title: String, isGranted: Boolean, onClick: () -> Unit
         Icon(
             imageVector = if (isGranted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
             contentDescription = null,
-            tint = if (isGranted) Color(0xFF4CAF50) else Color.LightGray,
-            modifier = Modifier.size(20.dp)
+            tint = if (isGranted) Color(0xFF4CAF50) else Color.Gray
         )
     }
 }
 
 @Composable
-private fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit) {
-    Row(
+fun SettingsItem(title: String, subtitle: String, onClick: () -> Unit) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 16.sp)
-            Text(text = subtitle, fontSize = 12.sp, color = Color.Gray)
-        }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+        Text(title, fontSize = 16.sp)
+        Text(subtitle, fontSize = 12.sp, color = Color.Gray)
     }
 }
 

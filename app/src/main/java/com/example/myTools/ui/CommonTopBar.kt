@@ -1,7 +1,7 @@
 package com.example.myTools.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -18,10 +18,10 @@ fun CommonTopBar(
         title = { Text(title, fontWeight = FontWeight.Bold) },
         actions = {
             IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Default.Settings, contentDescription = "設置")
+                Icon(Icons.Default.MoreVert, contentDescription = "更多")
             }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = containerColor
         )
     )

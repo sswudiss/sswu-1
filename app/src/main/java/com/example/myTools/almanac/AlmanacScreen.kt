@@ -23,8 +23,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material3.Button
@@ -72,23 +72,6 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
     val currentTermName = currentJieQiObj.name
     val nextJieQiObj = lunar.getNextJieQi(false)
     val nextTermName = nextJieQiObj.name
-
-    val daysLeft = remember {
-        val todayCal = Calendar.getInstance().apply {
-            time = today; set(Calendar.HOUR_OF_DAY, 0); set(
-            Calendar.MINUTE,
-            0
-        ); set(
-            Calendar.SECOND,
-            0
-        ); set(Calendar.MILLISECOND, 0)
-        }
-        val nextTermCal = Calendar.getInstance().apply {
-            val s = nextJieQiObj.solar
-            set(s.year, s.month - 1, s.day, 0, 0, 0); set(Calendar.MILLISECOND, 0)
-        }
-        ceil((nextTermCal.timeInMillis - todayCal.timeInMillis) / (1000.0 * 3600 * 24)).toInt()
-    }
 
     val daysSince = remember {
         val todayCal = Calendar.getInstance().apply {
@@ -209,7 +192,7 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                     .clickable { showTermDialog = true }
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -222,10 +205,11 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                             Icons.Outlined.Eco,
                             contentDescription = null,
                             tint = Color(0xFF00695C),
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -244,6 +228,8 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                                 )
                             }
                         }
+
+                        Text(text = "即將到來：$nextTermName")
                     }
                     Icon(
                         Icons.Default.Info,
@@ -258,9 +244,9 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
 
             // --- 生肖年表 ---
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val screenWidth = maxWidth;
-                val itemWidth = 75.dp;
-                val density = LocalDensity.current;
+                val screenWidth = maxWidth
+                val itemWidth = 75.dp
+                val density = LocalDensity.current
                 val zodiacListState = rememberLazyListState()
                 LaunchedEffect(key1 = currentYear) {
                     zodiacListState.scrollToItem(
@@ -296,7 +282,7 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(27.dp),
                 elevation = ButtonDefaults.buttonElevation(6.dp)
             ) {
-                Icon(Icons.Default.EventNote, contentDescription = null)
+                Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null)
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("查看吉日 (Auspicious Days)", fontSize = 17.sp, fontWeight = FontWeight.Bold)
             }
@@ -345,7 +331,11 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                             Button(
                                 onClick = { showTermDialog = false },
                                 modifier = Modifier.align(Alignment.End),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C)),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(
+                                        0xFFB71C1C
+                                    )
+                                ),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text("確定", color = Color.White, fontSize = 18.sp)

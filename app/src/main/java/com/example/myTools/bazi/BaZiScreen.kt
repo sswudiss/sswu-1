@@ -240,7 +240,7 @@ fun BaZiDetailDialog(
                                     
                                     姓名：${record.name}
                                     出生公曆：${solar.toFullString()}
-                                    出生農曆：${lunar.toString()}
+                                    出生農曆：$lunar
                                     
                                     八字四柱：
                                     年柱：${baZi.year} (${baZi.yearShiShenGan}, 納音: ${baZi.yearNaYin})
