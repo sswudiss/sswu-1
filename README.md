@@ -8,7 +8,7 @@
 ## 授權說明 (License & Copyright)
 
 ### 版權所有 (Copyright)
-Copyright © 2024 [你的名字/GitHub ID]. All rights reserved.
+Copyright © 2026 AppPlayForge. All rights reserved.
 
 ### 開源協議 (Open Source License)
 本項目代碼部分採用 **GNU General Public License v3.0 (GPL-3.0)** 協議進行許可。這意味著：
@@ -19,7 +19,7 @@ Copyright © 2024 [你的名字/GitHub ID]. All rights reserved.
 **嚴禁在未經授權的情況下將本項目直接用於商業營利活動。**
 如果你計劃將本項目的代碼用於商業產品，或者希望獲得非 GPL 協議的授權（如閉源商業授權），請務必通過以下方式聯繫我進行協商：
 
-- **Email**: [sswuss@outlook.com]
+- **Email**: sswuss@outlook.com
 - **GitHub Issues**: 提交一個 Issue 說明你的意圖
 
 未經許可的商業轉售、打包銷售或封裝後作為商業軟件發佈將被視為侵權行為。
