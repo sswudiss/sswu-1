@@ -3,17 +3,19 @@ package com.example.myTools.birthday
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,25 +55,35 @@ fun BirthdayCard(
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(10.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier.combinedClickable(
             onClick = { /* 預留查看詳情 */ },
             onLongClick = onEdit
         )
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                Icons.Default.Cake,
-                null,
-                tint = Color(0xFFFF5722),
-                modifier = Modifier.size(40.dp)
-            )
+            // 立體效果的主圖標
+            Surface(
+                shape = CircleShape,
+                color = Color(0xFFF5F5F5),
+                shadowElevation = 4.dp,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Default.Cake,
+                        null,
+                        tint = Color(0xFF616161),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = record.name, fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -89,6 +101,7 @@ fun BirthdayCard(
                         Icon(
                             Icons.Default.Alarm,
                             null,
+                            tint = Color.Gray,
                             modifier = Modifier.size(16.dp)
                         )
                         val timeStr = record.remindHours.sorted().joinToString(", ") { h ->
@@ -98,7 +111,8 @@ fun BirthdayCard(
                         }
                         Text(
                             " $timeStr",
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            color = Color.Gray
                         )
                     }
                     Row(
@@ -127,16 +141,43 @@ fun BirthdayCard(
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp)
                 .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (daysLeft == 0) {
                 Text("今天!", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             } else {
                 Text("還有$daysLeft 天", fontSize = 18.sp)
             }
-            IconButton(onClick = onDeleteRequest, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Delete, "Delete")
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ThreeDIconButton(icon = Icons.Default.Edit, onClick = onEdit)
+                Spacer(modifier = Modifier.width(16.dp))
+                ThreeDIconButton(icon = Icons.Default.Delete, onClick = onDeleteRequest)
             }
+        }
+    }
+}
+
+@Composable
+fun ThreeDIconButton(
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = Color(0xFFF5F5F5),
+        shadowElevation = 3.dp,
+        modifier = Modifier.size(36.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = Color(0xFF616161),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
