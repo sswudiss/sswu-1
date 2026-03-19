@@ -97,20 +97,31 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
     // 權限狀態
     val isNotificationGranted = remember(permissionUpdateTrigger) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         } else true
     }
     val isGpsGranted = remember(permissionUpdateTrigger) {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
     val isAlarmGranted = remember(permissionUpdateTrigger) {
         (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
     }
 
-    val notificationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionUpdateTrigger++ }
-    val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionUpdateTrigger++ }
+    val notificationLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionUpdateTrigger++ }
+    val locationLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionUpdateTrigger++ }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier.fillMaxWidth(0.95f),
             shape = RoundedCornerShape(16.dp),
@@ -129,7 +140,9 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                         onClick = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else { openAppSettings(context) }
+                            } else {
+                                openAppSettings(context)
+                            }
                         }
                     )
                     PermissionRow(
@@ -141,9 +154,10 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                         title = "精確鬧鐘",
                         isGranted = isAlarmGranted,
                         onClick = {
-                            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            }
+                            val intent =
+                                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
                             context.startActivity(intent)
                         }
                     )
@@ -161,19 +175,34 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                                 data = "mailto:sswuss@outlook.com".toUri()
                                 putExtra(Intent.EXTRA_SUBJECT, "App 反饋")
                             }
-                            try { context.startActivity(intent) } catch (e: Exception) { }
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                            }
                         }
                     )
-                    
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text("關注我們", modifier = Modifier.weight(1f), fontSize = 16.sp)
-                        IconButton(onClick = { /* TODO */ }) {
+                        IconButton(onClick = {
+                            val intent =
+                                Intent(Intent.ACTION_VIEW, "https://youtu.be/SDCEfVyvQis".toUri())
+                            context.startActivity(intent)
+
+                        }) {
                             Icon(Icons.Default.PlayCircle, "Youtube", tint = Color.Red)
                         }
+
                         IconButton(onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, "https://m.bilibili.com/space/297639121".toUri())
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://m.bilibili.com/space/297639121".toUri()
+                            )
                             context.startActivity(intent)
                         }) {
                             Icon(Icons.Default.Subscriptions, "Bilibili", tint = Color(0xFFFB7299))
@@ -192,7 +221,10 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
 
                 // 分組 4：作者作品
                 SettingsGroup(title = "更多作品", icon = Icons.Default.Code) {
-                    WorkLinkItem(title = "分享App", url = "https://github.com/AppPlayForge/sswu-1.git")
+                    WorkLinkItem(
+                        title = "分享App",
+                        url = "https://github.com/AppPlayForge/sswu-1.git"
+                    )
                     WorkLinkItem(title = "其它應用", url = "https://github.com/AppPlayForge")
                 }
 
@@ -203,9 +235,14 @@ fun AppSettingsDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("版本號: v1.0.1-beta", fontSize = 14.sp, color = Color.Gray)
+                    Text("版本號: v1.0.3-beta", fontSize = 14.sp, color = Color.Gray)
                     TextButton(onClick = onDismiss) {
-                        Text("返回",  fontSize = 18.sp,fontWeight = FontWeight.Bold, color = Color(0xFF8BC34A))
+                        Text(
+                            "返回",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF8BC34A)
+                        )
                     }
                 }
             }
@@ -223,9 +260,19 @@ fun SettingsGroup(title: String, icon: ImageVector, content: @Composable ColumnS
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF795548))
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = Color(0xFF795548)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF795548))
+                Text(
+                    title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF795548)
+                )
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
             content()
@@ -246,7 +293,12 @@ fun WorkLinkItem(title: String, url: String) {
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+        Icon(
+            Icons.Default.Language,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = Color.Gray
+        )
         Spacer(modifier = Modifier.width(12.dp))
         Text(title, modifier = Modifier.weight(1f), fontSize = 16.sp)
         Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
@@ -256,10 +308,19 @@ fun WorkLinkItem(title: String, url: String) {
 @Composable
 fun SupportSection(context: Context) {
     var wechatExpanded by remember { mutableStateOf(false) }
-    val rotationState by animateFloatAsState(targetValue = if (wechatExpanded) 180f else 0f)
+    var cryptoExpanded by remember { mutableStateOf(false) }
+
+    val wechatRotation by animateFloatAsState(
+        targetValue = if (wechatExpanded) 180f else 0f,
+        label = "wechatRotation"
+    )
+    val cryptoRotation by animateFloatAsState(
+        targetValue = if (cryptoExpanded) 180f else 0f,
+        label = "cryptoRotation"
+    )
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // 微信部分 - 標題行，點擊切換狀態
+        // 微信部分
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -267,12 +328,17 @@ fun SupportSection(context: Context) {
                 .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("微信掃碼支持", fontSize = 14.sp, color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
+            Text(
+                "微信掃碼支持",
+                fontSize = 14.sp,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier.weight(1f)
+            )
             Icon(
                 imageVector = Icons.Default.ExpandMore,
                 contentDescription = null,
                 tint = Color(0xFF4CAF50),
-                modifier = Modifier.rotate(rotationState)
+                modifier = Modifier.rotate(wechatRotation)
             )
         }
 
@@ -291,20 +357,143 @@ fun SupportSection(context: Context) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
-        
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
-        
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            thickness = 0.5.dp,
+            color = Color.LightGray.copy(alpha = 0.3f)
+        )
+
         // 加密貨幣部分
-        val cryptoAddress = "0x82C1Fb29DcAB7C69842A17e9c56887185857d61E"
-        Text("USDT (TRC20) 地址：", fontSize = 13.sp, color = Color(0xFF26A17B))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(cryptoAddress, fontSize = 10.sp, modifier = Modifier.weight(1f), color = Color.Gray)
-            IconButton(onClick = {
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("Crypto Address", cryptoAddress))
-                Toast.makeText(context, "已複製", Toast.LENGTH_SHORT).show()
-            }, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.ContentCopy, null, modifier = Modifier.size(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { cryptoExpanded = !cryptoExpanded }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "加密貨幣支持(USDT)",
+                fontSize = 14.sp,
+                color = Color(0xFF26A17B),
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint = Color(0xFF26A17B),
+                modifier = Modifier.rotate(cryptoRotation)
+            )
+        }
+
+        AnimatedVisibility(visible = cryptoExpanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                val baseAddress = "0x82C1Fb29DcAB7C69842A17e9c56887185857d61E"
+                val tronAddress = "TXdXDAZaaA2M9mCbXusUVXsBAT3Bfq13M3"
+
+                // Base / EVM Section
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.base_pay_qr),
+                        contentDescription = "Base QR",
+                        modifier = Modifier
+                            .size(160.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Base網絡",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF26A17B)
+                    )
+                    CryptoAddressRow(
+                        context = context,
+                        label = "Base錢包地址",
+                        address = baseAddress
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Tron Section
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.tron_pay_qr),
+                        contentDescription = "Tron QR",
+                        modifier = Modifier
+                            .size(160.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Tron網絡",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF26A17B)
+                    )
+                    CryptoAddressRow(
+                        context = context,
+                        label = "Tron錢包地址",
+                        address = tronAddress
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "⚠️ 警告：複製的錢包地址必須對應網絡 (Base或Tron)，錯誤的選擇將導致資產永久丟失。",
+                    fontSize = 14.sp,
+                    color = Color.Red.copy(alpha = 0.7f),
+                    lineHeight = 18.sp,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CryptoAddressRow(context: Context, label: String, address: String) {
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            Text(
+                address,
+                fontSize = 10.sp,
+                color = Color.DarkGray,
+                maxLines = 1
+            )
+            IconButton(
+                onClick = {
+                    val clipboard =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(ClipData.newPlainText(label, address))
+                    Toast.makeText(context, "已複製 $label", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.ContentCopy,
+                    null,
+                    modifier = Modifier.size(16.dp),
+                    tint = Color(0xFF26A17B)
+                )
             }
         }
     }

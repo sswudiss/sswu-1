@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.myTools.ui.DeleteConfirmDialog
 
 
 /*
@@ -147,7 +148,7 @@ fun LunarBirthdayScreen() {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("尚未添加生日紀錄", color = Color.Gray, fontSize = 16.sp)
+                    Text("尚未添加生日紀錄", color = Color.Gray, fontSize = 18.sp)
                 }
             } else {
                 LazyColumn(
@@ -253,31 +254,14 @@ fun LunarBirthdayScreen() {
 
             // 刪除確認對話框
             if (recordToDelete != null) {
-                AlertDialog(
-                    onDismissRequest = { recordToDelete = null },
-                    title = { Text("刪除提醒") },
-                    text = {
-                        Text(
-                            "要刪除 ${recordToDelete!!.name} 的生日提醒嗎？",
-                            fontSize = 18.sp
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                val newList = birthdayList.filter { it.id != recordToDelete!!.id }
-                                BirthdayManager.saveList(context, newList)
-                                birthdayList = newList
-                                recordToDelete = null
-                            }
-                        ) {
-                            Text("刪除", color = Color.Red)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { recordToDelete = null }) {
-                            Text("取消")
-                        }
+                DeleteConfirmDialog(
+                    message = "要刪除 ${recordToDelete!!.name} 的生日提醒嗎？",
+                    onDismiss = { recordToDelete = null },
+                    onConfirm = {
+                        val newList = birthdayList.filter { it.id != recordToDelete!!.id }
+                        BirthdayManager.saveList(context, newList)
+                        birthdayList = newList
+                        recordToDelete = null
                     }
                 )
             }

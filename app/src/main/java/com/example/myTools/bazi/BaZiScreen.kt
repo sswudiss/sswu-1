@@ -56,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.myTools.settings.AppSettingsDialog
 import com.example.myTools.ui.CommonTopBar
+import com.example.myTools.ui.DeleteConfirmDialog
 import com.nlf.calendar.EightChar
 import com.nlf.calendar.Lunar
 import com.nlf.calendar.Solar
@@ -68,6 +69,7 @@ fun BaZiScreen() {
     var showAddDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
     var recordToEdit by remember { mutableStateOf<BaZiRecord?>(null) }
+    var recordToDelete by remember { mutableStateOf<BaZiRecord?>(null) }
     var selectedRecord by remember { mutableStateOf<BaZiRecord?>(null) }
 
     Scaffold(
@@ -99,10 +101,7 @@ fun BaZiScreen() {
                             record = record,
                             onClick = { selectedRecord = record },
                             onEdit = { recordToEdit = record },
-                            onDelete = {
-                                BaZiManager.deleteRecord(context, record.id)
-                                records = BaZiManager.loadList(context)
-                            }
+                            onDelete = { recordToDelete = record }
                         )
                     }
                 }
@@ -133,6 +132,18 @@ fun BaZiScreen() {
                 BaZiManager.addOrUpdateRecord(context, it)
                 records = BaZiManager.loadList(context)
                 recordToEdit = null
+            }
+        )
+    }
+
+    if (recordToDelete != null) {
+        DeleteConfirmDialog(
+            message = "確定要刪除 ${recordToDelete!!.name} 的八字紀錄嗎？",
+            onDismiss = { recordToDelete = null },
+            onConfirm = {
+                BaZiManager.deleteRecord(context, recordToDelete!!.id)
+                records = BaZiManager.loadList(context)
+                recordToDelete = null
             }
         )
     }

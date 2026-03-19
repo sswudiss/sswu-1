@@ -68,9 +68,9 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
     val lunar = remember { Lunar.fromDate(today) }
 
     // 節氣計算
-    val currentJieQiObj = lunar.getPrevJieQi(true)
+    val currentJieQiObj = lunar.getPrevJieQi(false)
     val currentTermName = currentJieQiObj.name
-    val nextJieQiObj = lunar.getNextJieQi(false)
+    val nextJieQiObj = lunar.getNextJieQi(true)
     val nextTermName = nextJieQiObj.name
 
     val daysSince = remember {
@@ -166,8 +166,7 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                             Locale.TRADITIONAL_CHINESE
                         ).format(today),
                         fontSize = 20.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        color = Color.White
                     )
                 }
             }
@@ -219,23 +218,23 @@ fun AlmanacScreen(modifier: Modifier = Modifier) {
                                 color = Color(0xFF5D4037)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
-                            Surface(color = Color(0xFF5D4037), shape = RoundedCornerShape(4.dp)) {
+                            Surface(color = Color(0xFF5D4037), shape = RoundedCornerShape(13.dp)) {
                                 Text(
                                     text = "第${daysSince}天",
-                                    fontSize = 13.sp,
+                                    fontSize = 12.sp,
                                     color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 8.dp)
                                 )
                             }
                         }
 
-                        Text(text = "即將到來：$nextTermName")
+                        Text(text = "下一個節氣：$nextTermName")
                     }
                     Icon(
                         Icons.Default.Info,
                         contentDescription = null,
                         tint = Color.LightGray,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
             }
